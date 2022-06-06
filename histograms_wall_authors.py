@@ -10,8 +10,7 @@ import os
 
 
 def plot(word_dict, file):
-    hapax = []
-    pub = []
+    hapax, pub = ([] for i in range(2))
     word_dict = dict(sorted(word_dict.items(), key=lambda item: item[1]))
     for k, v in word_dict.items():
         if v < 3:
