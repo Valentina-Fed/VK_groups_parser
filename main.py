@@ -5,7 +5,7 @@ import os
 
 def parse_groups(groups):
     file = open(f'{groups}', 'r')
-    group_id_list, names_list = [], []
+    group_id_list, names_list = ([] for i in range(2))
     for line in file.readlines():
         if line.startswith('ids'):
             group_id_list = ','.join(line.replace('ids: ', ''))
@@ -28,17 +28,7 @@ def main(path, groups):
         else:
             print('the group ' + names_list[i] + ' is not accessible')
             continue
-        id = []
-        from_id = []
-        owner_id = []
-        date= []
-        post_type=[]
-        post_text=[]
-        attachments=[]
-        post_source=[]
-        likes=[]
-        reposts=[]
-        views=[]
+        id, from_id, owner_id, date, post_type, post_text, attachments, post_source, likes, reposts, views = ([] for i in range(11))
         offset = 0
         while offset <= nb_posts[names_list[i]]:
             wall = requests.get('https://api.vk.com/method/wall.get',
@@ -92,14 +82,7 @@ def users(path, groups):
     nb_members = {}
     group_id_list, names_list = parse_groups(groups)
     for i,group_id in enumerate(group_id_list):
-        id = []
-        name = []
-        sex = []
-        city = []
-        country = []
-        bdate = []
-        university = []
-        schools = []
+        id, name, sex, city, country, bdate, university, schools = ([] for i in range(8))
         offset = 0
         members = requests.get('https://api.vk.com/method/groups.getMembers',
                                params={'group_id': group_id, 'access_token': token, 'v': version,
