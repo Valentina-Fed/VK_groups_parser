@@ -29,20 +29,17 @@ def plot(word_dict, file):
 def authors_wall_posts(path):
     for file in os.listdir(path):
       if file.endswith('wall_info.csv'):
-        df = pd.read_csv(f'{file}', sep='\t').to_dict()
-        ids = df['from_id'].values()
+        df = pd.read_csv(f'{file}', sep='\t')
         names={}
-        for id in ids:
+        for id in df['from_id']:
           names[id] = names.setdefault(id, 0) + 1
         file1 = file.replace('_wall_info.csv', '')
-        df1 = pd.read_csv(f'{path}/{file1}_members.csv', sep='\t').to_dict()
+        df1 = pd.read_csv(f'{path}{file1}_members.csv', sep='\t')
         for_hist = {}
-        id_list = list(df1['id'].values())
-        name_list = list(df1['name'].values())
-        for i, name in enumerate(id_list):
+        for i, name in enumerate(df1['id']):
           for k,v in names.items():
             if name == k and v > 2:
-              for_hist[name_list[i]] = v
+              for_hist[df1['name'].to_list()[i]] = v
             elif str(k).startswith('-'):
               for_hist['ADMIN'] = v
             elif v > 2:
@@ -51,7 +48,7 @@ def authors_wall_posts(path):
                 continue
                 plot(for_hist, file1)
         with open(f'all_authors.txt', 'w') as f:
-          f.write(f'{file}' + '\n' + f'{sorted(for_hist.items(), key=lambda x : x[1], reverse = True)}')
+          f.write(f'{file}\n{'\n'.join(sorted(for_hist.items(), key=lambda x : x[1], reverse = True))}')
 
 
 if __name__ == '__main__':
