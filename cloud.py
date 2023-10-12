@@ -35,10 +35,7 @@ def plot_cloud(text, file):
 nlp.max_length = 4000000
 
 def vocToStat(text):
-    dico = {}
-    for word in text.split(" "):
-      if not re.match(r'\=+', word):
-        dico[word] = dico.get(word, 0) + 1
+    dico = dict(Counter([word for word if not re.match(r'\=+', word) in text.split(' ')]))
     list_tuples = sorted(dico.items(), key=lambda x : x[1], reverse = True)[:500]
     return str(list_tuples).strip('[]')
 
