@@ -5,12 +5,8 @@ import os
 
 def parse_groups(groups):
     file = open(f'{groups}', 'r')
-    group_id_list, names_list = ([] for i in range(2))
-    for line in file.readlines():
-        if line.startswith('ids'):
-            group_id_list = ','.join(line.replace('ids: ', ''))
-        elif line.startswith('names'):
-            names_list = ','.join(line.replace('names: ', ''))
+    group_id_list = ','.join([line.replace('ids: ', '') for line if line.startswith('ids') in file.readlines()])
+    names_list = ','.join([line.replace('names: ', '') for line if line.startswith('names') in file.readlines()])
     return group_id_list, names_list
 
 #to extract information from the wall
@@ -26,7 +22,7 @@ def main(path, groups):
         if 'response' in wall.json():
             nb_posts[names_list[i]] = wall.json()['response']['count']
         else:
-            print('the group ' + names_list[i] + ' is not accessible')
+            print(f'the group {names_list[i]} is not accessible')
             continue
         id, from_id, owner_id, date, post_type, post_text, attachments, post_source, likes, reposts, views = ([] for i in range(11))
         offset = 0
@@ -45,30 +41,28 @@ def main(path, groups):
                 if 'attachments' in tx.keys():
                     attachments.append(tx['attachments'][0]['type'])
                 else:
-                    attachments.append('%%%%%%')
+                    attachments.append('no_information')
                 post_source.append(tx['post_source']['type'])
                 likes.append(tx['likes']['count'])
                 if 'reposts' in tx.keys():
                     reposts.append(tx['reposts']['count'])
                 else:
-                    reposts.append('%%%%%%')
+                    reposts.append('no_information')
                 if 'views' in tx.keys():
                     views.append(tx['views']['count'])
                 else:
-                    views.append('%%%%%')
+                    views.append('no_information')
             offset += 100
         print(f'Processing the group {names_list[i]}')
-        d = {'id': id, 'text': post_text}
-        df = pd.DataFrame(data=d)
-        d1 = {'id': id, 'from_id': from_id, 'owner_id': owner_id, 'date': date, 'post_type': post_type, 'attachments': attachments,
-              'post_source': post_source, 'likes': likes, 'reposts': reposts, 'views': views}
-        df1 = pd.DataFrame(data=d1)
-        df.to_csv(f'{path}/{names_list[i]}_wall_text.csv', sep='\t', index=False)
-        df1.to_csv(f'{path}/{names_list[i]}_wall_info.csv', sep='\t', index=False)
-        tfile = open(f'{path}/{names_list[i]}_wall_text.txt', 'a')
+        df = pd.DataFrame.from_dict({'id': id, 'text': post_text})
+        df1 = pd.DataFrame.from_dict({'id': id, 'from_id': from_id, 'owner_id': owner_id, 'date': date, 'post_type': post_type, 'attachments': attachments,
+              'post_source': post_source, 'likes': likes, 'reposts': reposts, 'views': views})
+        df.to_csv(f'{path}{names_list[i]}_wall_text.csv', sep='\t', index=False)
+        df1.to_csv(f'{path}{names_list[i]}_wall_info.csv', sep='\t', index=False)
+        tfile = open(f'{path}{names_list[i]}_wall_text.txt', 'a')
         tfile.write(df.to_string())
         tfile.close()
-        tfil = open(f'{path}/{names_list[i]}_wall_info.txt', 'a')
+        tfil = open(f'{path}{names_list[i]}_wall_info.txt', 'a')
         tfil.write(df1.to_string())
         tfil.close()
         id_max_likes = str(id[likes.index(max(likes))])
@@ -101,38 +95,37 @@ def users(path, groups):
             for tx in text:
                 id.append(tx['id'])
                 if 'first_name' in tx.keys() and 'last_name' in tx.keys():
-                    name.append(tx['first_name'] + ' ' + tx['last_name'])
+                    name.append(f'{tx['first_name']} {tx['last_name']})
                 else:
-                    name.append('%%%%')
+                    name.append('no_information')
                 if 'sex' in tx.keys():
                     sex.append(tx['sex'])
                 else:
-                    sex.append('%%%%')
+                    sex.append('no_information')
                 if 'city' in tx.keys():
                     city.append(tx['city']['title'])
                 else:
-                    city.append('%%%%')
+                    city.append('no_information')
                 if 'country' in tx.keys():
                     country.append(tx['country']['title'])
                 else:
-                    country.append('%%%%')
+                    country.append('no_information')
                 if 'bdate' in tx.keys():
                     bdate.append(tx['bdate'])
                 else:
-                    bdate.append('%%%%')
+                    bdate.append('no_information')
                 if 'universities' in tx.keys():
                     university.append([j['name'] for j in tx['universities']])
                 else:
-                    university.append('%%%%')
+                    university.append('no_information')
                 if 'schools' in tx.keys():
                     schools.append([j['name'] for j in tx['schools']])
                 else:
-                    schools.append('%%%%')
+                    schools.append('no_information')
             offset +=100
         print(f'Processing the group {names_list[i]}')
-        d = {'id': id, 'name': name, 'sex': sex, 'bdate': bdate, 'city': city,
-              'country': country, 'universities': university, 'schools': schools}
-        df = pd.DataFrame(data=d)
+        df = pd.DataFrame.from_dict({'id': id, 'name': name, 'sex': sex, 'bdate': bdate, 'city': city,
+              'country': country, 'universities': university, 'schools': schools})
         df.to_csv(f'{path}/{names_list[i]}_members.csv', sep='\t', index=False)
         tfile = open(f'{path}/{names_list[i]}_members.txt', 'a')
         tfile.write(df.to_string())
@@ -154,20 +147,17 @@ def common_members(list1, list2, file):
 
 def get_common_members(path, group):
     dico = {}
-    df = pd.read_csv(f'{group}_members.csv', sep='\t').to_dict()
-    Zolotitsa = list(df['id'].values())
-    Zolotitsa_names = list(df['name'].values())
+    df = pd.read_csv(f'{group}_members.csv', sep='\t')
     for file in os.listdir(path):
       if file.endswith('_members.csv'):
         file1 = file.replace('_members.csv', '')
-        df1 = pd.read_csv(f'{file}', sep='\t').to_dict()
-        dico[file1] = compare_members (list(df1['id'].values()), Zolotitsa)
+        df1 = pd.read_csv(f'{file}', sep='\t')
+        dico[file1] = compare_members(df1['id'], df['id'])
         if file1 != group:
-            compare = common_members(list(df1['id'].values()), Zolotitsa, file)
-            print(file1, type(compare))
-            list_group = [Zolotitsa_names[i] for i, value in enumerate(Zolotitsa) if value in compare]
+            compare = common_members(df1['id'], df['id'], file)
+            list_group = [df['name'][i] for i, value in enumerate(df['id']) if value in compare]
             tfile = open(f'{group}_common_members.txt', 'a')
-            tfile.write(f'{group} + {file1}: ' + ', '.join(list_group) + '\n\n')
+            tfile.write(f'{group}\n{file1}: {', '.join(list_group)}\n\n')
             tfile.close()
     dico1 = sorted(dico.items(), key=lambda item: item[1], reverse=True)
     print(dico1)
