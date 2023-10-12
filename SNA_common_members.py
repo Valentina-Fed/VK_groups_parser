@@ -6,24 +6,23 @@ import os
 import pandas as pd
 
 def gender_sex_dob(file):
-      df = pd.read_csv(f'{file}', sep='\t').to_dict()
-      return df['name'].values, df['sex'].values(), df['bdate'].values(), df['city'].values(), df['country'].values(), df['universities'].values(), df['schools'].values()
+      df = pd.read_csv(f'{file}', sep='\t')
+      return df['name'], df['sex'], df['bdate'], df['city'], df['country'], df['universities'], df['schools']
 
-def main(path):
+def main(path, limit):
   group_name = []
   names = {}
   for file in os.listdir('/content'):
     if file.endswith('members.csv'):
-      df = pd.read_csv(f'{file}', sep='\t').to_dict()
-      name = list(df['name'].values())
+      df = pd.read_csv(f'{file}', sep='\t')
       filename = file.replace('_members.csv', '')
-      for it in name:
+      for it in df['name']:
         names[it] = names.setdefault(it, 0) + 1
         tup = (filename, it)
         group_name.append(tup)
   group_names = []
   for pair in group_name:
-    if names[pair[1]] > 6:
+    if names[pair[1]] > limit:
       group_names.append(pair)
   common_members = pd.DataFrame(group_names, columns =['group', 'name'])
   net = Network(notebook=True)
@@ -46,7 +45,7 @@ if __name__ == '__main__':
                       help='path to directory with wall_info.csv files')
     args = parser.parse_args()
     path = args.path
-    main(path)
+    main(path, 6)
 
 
 
