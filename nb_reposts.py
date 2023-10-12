@@ -4,22 +4,16 @@
 import pandas as pd
 import os
 
-def isNaN(string):
-    return string != string
-
 def nb_reposts(path):
   dico = {}
   for file in os.listdir(path):
-    count=0
     if file.endswith('wall_text.csv'):
-      df = pd.read_csv(f'{file}', sep='\t').to_dict()
-      l = len(df['id'].values())
-      for text in df['text'].values():
-        if isNaN(text) or text == '':
-          count+=1
+      df = pd.read_csv(f'{file}', sep='\t')
+      l = len(df['id'])
+      df.dropna(subset = ['text'])
       file1 = file.replace('_wall_text.csv', '')
-      dico[file1] = round(count/len(df['text'].values()), 2)
-  print(dico)
+      dico[file1] = round(l/len(df['text']), 2)
+  return dico
 
 if __name__ == '__main__':
     import argparse
